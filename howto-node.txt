@@ -1,0 +1,261 @@
+/**
+ * ES6 express.js mysql
+ *
+ * Initialize project and install dependencies
+ *      npm init -y
+ *      npm install @babel/core @babel/node @babel/preset-env
+ *      npm install express cors dotenv sequelize mysql2
+ *
+ *
+ * Create .babelrc file
+ *      {
+ *          "presets": [
+ *              "@babel/preset-env"
+ *          ]
+ *      }
+ *
+ * package.json add starting script for using npm start instead of node app.js ->
+ *
+ *    "scripts": {
+ *     "start": "nodemon --exec babel-node app.js",
+ *   },
+ *
+ * Create .env file
+ *    PORT = 3000
+ *
+ *    DATABASE_NAME= name of database needs to be created
+ *    DATABASE_USERNAME= username for your database (if not created for current db, usually root)
+ *    DATABASE_PASSWORD= password to access the database
+ *    DIALECT = mysql
+ *
+ * Create app.js
+ *    1. import express from 'express'
+ *
+ *    2. configure dotenv file
+ *          require('dotenv').config()
+ *
+ *    3. set constant app for using express
+ *          const app = express()
+ *
+ *    4. activate the port
+ *          app.listen(process.env.PORT)
+ *
+ * Make the basic setup for your app
+ *    1. create src folder
+ *         -> create config folder
+ *         -> create controllers folder
+ *         -> create models folder
+ *         -> create routes folder
+ *
+ * In config folder we will set up Sequelize (https://sequelize.org)
+ *     1. create database.js
+ *
+ *     2. import Sequelize object with its functions
+ *             import { Sequelize } from 'sequelize'
+ *
+ *     3. in order to use .env file and access its variables
+ *          require('dotenv').config()
+ *
+ *     4. since we set our variables for database in .env file we create constant with these variables which Sequelize will be able to access
+ *          const {
+ *              DATABASE_NAME,
+ *              DATABASE_USERNAME,
+ *              DATABASE_PASSWORD,
+ *              DIALECT
+ *          } = process.env
+ *
+ *      5. create sequelize object so it can use these variables
+ *           const sequelize = new Sequelize(DATABASE_NAME, DATABASE_USERNAME, DATABASE_PASSWORD, {
+ *              dialect : DIALECT
+ *           })
+ *
+ *      6. export sequelize so it can be used in other js files
+ *           export default sequelize
+ *
+ * In model define your model
+ *
+ *     For example let's use User object
+ *
+ *     1. create user.js
+ *
+ *     2. import Sequelize object
+ *          import Sequelize  from "sequelize";
+ *
+ *     3. import our sequelize which we just created
+ *          import sequelize from "../config/database";
+ *
+ *     2. define the object (https://sequelize.org/v7/manual/naming-strategies.html, https://sequelize.org/v3/docs/models-definition/)
+ *                                        ! name of the table 'users'
+ *          const User = sequelize.define('users', {
+ *                 id: {
+ *                      type: Sequelize.INTEGER,
+ *                      autoIncrement: true,
+ *                      allowNull: false,
+ *                      primaryKey: true
+ *                  },
+ *                  name: {
+ *                      type: Sequelize.STRING,
+ *                      allowNull: false
+ *                  },
+ *                  email: {
+ *                      type: Sequelize.STRING,
+ *                  allowNull: false
+ *                 }
+ *                 })
+ *
+ *                  // user has id which is integer, it's autoincremented, not null and it's primary key
+ *                  // name -> String not null etc
+ *
+ *     3. export the object
+ *          export default User
+ *
+ *
+ *     Define second object
+ *         for example order
+ *
+ *         1. create order.js
+ *
+ *         2. same as User
+ *
+ *         import Sequelize from "sequelize";
+ *         import sequelize from "../config/database";
+ *
+ *          const Order = sequelize.define("orders", {
+ *                           id: {
+ *                              type: Sequelize.INTEGER,
+ *                              autoIncrement: true,
+ *                              allowNull: false,
+ *                              primaryKey: true
+ *                           },
+ *                           total: {
+ *                              type: Sequelize.INTEGER,
+ *                              allowNull: false
+ *                           }
+ *                          })
+ *
+ *          export default Order;
+ *
+ *
+ *
+ *  We've prepared database connection, defined the models, time to define relationship using sequelize methods
+ *
+ *       In our app.js
+ *
+ *       https://sequelize.org/master/manual/assocs.html
+ *
+ *       1. import sequelize from "./src/config/database";
+ *       2. import User object
+ *       3. import Order object
+ *
+ *       User can have many orders so we need to set the relationship
+ *
+ *       4. User.hasMany(Order)
+ *
+ *       5. set sequelize to create the tables
+ *
+ *          sequelize.sync()             /// if we would forget to set the relationship before we can use sync({force: true}) which will force to recreate new tables
+ *
+ *        Now app.js looks like this
+ *
+ *          import express from 'express';
+ *          import sequelize from "./src/config/database";
+ *          import User from "./src/models/user";
+ *          import Order from "./src/models/order";
+ *          require('dotenv').config();
+ *
+ *          const app = express();
+ *          User.hasMany(Order);
+ *          sequelize
+ *              .sync()
+ *              .then(result => {
+ *                  console.log(result);
+ *              })
+ *              .catch(err => {
+ *                  console.log(err);
+ *              })
+ *
+ *          app.listen(process.env.PORT);
+ *
+ *
+ *  Then we need to create controller for handling the sql for each Object/Entity
+ *
+ *        in controllers folder create userController.js
+ *
+ *        how to create queries https://sequelize.org/master/manual/model-querying-basics.html
+ *
+ *        for each controller we need to import the object to the controller .js file
+ *
+ *          import User from "./src/models/user";
+ *          import Order from "./src/models/order";
+ *
+ *          for example findAll for User
+ *
+ *          const findAll = async (req, res) => {
+ *                  const users = await User.findAll();
+ *                  res.json(users);
+ *          }
+ *
+ *          export default {
+ *              all methods
+ *              for example
+ *              findAll,
+ *              create........
+ *          }
+ *
+ *
+ * Then we need to create Router for handling the url for each method
+ *
+ *      in routes folder create router.js
+ *
+ *      import { Router } from 'express'
+ *      import UserController from '../controllers/userController';
+ *
+ *
+ *      set constant to Router function
+ *      const UserController = Router()
+ *
+ *      create Router methods for each endpoint where at the endpoint we call the methods of userController
+ *
+ *      for example:
+ *
+ *      UserRouter.get('/', UserController.findAll);
+ *
+ *
+ *
+ *      export default UserRouter;
+ *
+ *
+ * Then finally we set our app.js to connect to router add the same for the order
+ *
+ *      import UserRouter from "./src/routes/router";
+ *
+ *      app.use(express.json())
+ *      app.use(express.urlencoded({extended:true}))
+ *      app.use(UserRouter) -> using the created router
+ *
+ *      then our app looks like this
+ *
+ *      import express from 'express';
+ *      import sequelize from "./src/config/database";
+ *      import User from "./src/models/user";
+ *      import Order from "./src/models/order";
+ *      import UserRouter from "./src/routes/router";
+ *
+ *      require('dotenv').config();
+ *
+ *      const app = express();
+ *      User.hasMany(Order);
+ *      sequelize.sync()
+ *      app.use(express.json())
+ *      app.use(express.urlencoded({extended:true}))
+ *      app.use(UserRouter)
+ *
+ *      app.listen(process.env.PORT);
+ *
+ *      we didn't user order entity, it was just to show how to create a relationship
+ *
+ *
+ *
+ * Check if it works in postman! :D
+ *
+ */
