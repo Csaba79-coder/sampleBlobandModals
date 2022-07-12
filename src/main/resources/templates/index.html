@@ -6,141 +6,142 @@
     <title>Files</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous"></head>
 <body>
-    <div class="container">
-        <div style="margin-top: 24px;">
-            <h1 class="float-start">List of files</h1>
-            <a class="btn btn-success float-end" data-bs-toggle="modal" data-bs-target="#uploadModal">Upload file</a>
-        </div>
-        <table class="table table-striped">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>File Name</th>
-                <th>Type</th>
-                <th>Action</th>
-            </tr>
-            </thead>
-            <tr th:each="oneFile : ${allFiles}">
-                <td th:text="${oneFile.id}"></td>
-                <td th:text="${oneFile.name}"></td>
-                <td th:text="${oneFile.type}"></td>
-                <td><a th:href="@{/delete/{id}(id=${oneFile.id})}" class="btn btn-danger btn-delete">Delete</a></td>
-            </tr>
-            </table>
+<div class="container">
+    <div style="margin-top: 24px;">
+        <h1 class="float-start">List of files</h1>
+        <a class="btn btn-success float-end" data-bs-toggle="modal" data-bs-target="#uploadModal">Upload file</a>
     </div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>File Name</th>
+            <th>Type</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tr th:each="oneFile : ${allFiles}">
+            <td th:text="${oneFile.id}"></td>
+            <td th:text="${oneFile.name}"></td>
+            <td th:text="${oneFile.type}"></td>
+            <td><img th:src="'data:image/png;base64,' + ${imgUtil.getImgData(oneFile.data)}" /></td>
+            <td><a th:href="@{/delete/{id}(id=${oneFile.id})}" class="btn btn-danger btn-delete">Delete</a></td>
+        </tr>
+    </table>
+</div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModal" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form id="form-upload">
-                    <div class="modal-body">
-                        <input type="file" id="fileinput">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Upload file</button>
-                    </div>
-                </form>
+<!-- Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+            <form id="form-upload">
+                <div class="modal-body">
+                    <input type="file" id="fileinput">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Upload file</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
-    <script>
-        // Select your input type file and store it in a variable
-        const input = document.getElementById('fileinput');
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+<script>
+    // Select your input type file and store it in a variable
+    const input = document.getElementById('fileinput');
 
-        document.getElementById("form-upload").addEventListener('submit', function(event){
-            event.preventDefault();
-            const formData = new FormData();
-            // HTML file input, chosen by user
-            formData.append("file", input.files[0]);
+    document.getElementById("form-upload").addEventListener('submit', function(event){
+        event.preventDefault();
+        const formData = new FormData();
+        // HTML file input, chosen by user
+        formData.append("file", input.files[0]);
 
-            const request = new XMLHttpRequest();
-            request.open("POST", "http://localhost:8080/upload");
-            request.send(formData);
+        const request = new XMLHttpRequest();
+        request.open("POST", "http://localhost:8080/upload");
+        request.send(formData);
 
-            request.onreadystatechange = function() {
-                if (request.readyState === 4) {
-                    console.log(request.response);
-                    console.log(request.status);
+        request.onreadystatechange = function() {
+            if (request.readyState === 4) {
+                console.log(request.response);
+                console.log(request.status);
 
-                    let message = JSON.parse(request.response).message;
+                let message = JSON.parse(request.response).message;
 
-                    if(request.status === 200){
-                        Swal.fire(
-                            'Good job!',
-                            message,
-                            'success'
-                        ).then(() => {
-                            location.reload();
-                        });
-                    }
-                    else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: message,
-                        }).then(() => {
-                            location.reload();
-                        });
-                    }
+                if(request.status === 200){
+                    Swal.fire(
+                        'Good job!',
+                        message,
+                        'success'
+                    ).then(() => {
+                        location.reload();
+                    });
+                }
+                else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: message,
+                    }).then(() => {
+                        location.reload();
+                    });
                 }
             }
-        });
+        }
+    });
 
-        // handle deleting
-        let allDeleteButtons = document.querySelectorAll('.btn-delete');
+    // handle deleting
+    let allDeleteButtons = document.querySelectorAll('.btn-delete');
 
-        allDeleteButtons.forEach(btn => {
-            btn.addEventListener('click', function(event) {
-                event.preventDefault();
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete it!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
+    allDeleteButtons.forEach(btn => {
+        btn.addEventListener('click', function(event) {
+            event.preventDefault();
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
 
-                        const request = new XMLHttpRequest();
-                        request.open("GET", event.target.href);
-                        request.send();
+                    const request = new XMLHttpRequest();
+                    request.open("GET", event.target.href);
+                    request.send();
 
-                        request.onreadystatechange = function() {
-                            if(request.status === 200){
-                                Swal.fire(
-                                    'Deleted!',
-                                    'Your file has been deleted.',
-                                    'success'
-                                ).then(()=>{
-                                    location.reload();
-                                })
-                            }
-                            else{
-                                Swal.fire(
-                                    'Error!',
-                                    'Something went wrong',
-                                    'error'
-                                ).then(()=>{
-                                    location.reload();
-                                })
-                            }
+                    request.onreadystatechange = function() {
+                        if(request.status === 200){
+                            Swal.fire(
+                                'Deleted!',
+                                'Your file has been deleted.',
+                                'success'
+                            ).then(()=>{
+                                location.reload();
+                            })
+                        }
+                        else{
+                            Swal.fire(
+                                'Error!',
+                                'Something went wrong',
+                                'error'
+                            ).then(()=>{
+                                location.reload();
+                            })
                         }
                     }
-                })
-            });
+                }
+            })
         });
+    });
 
-    </script>
+</script>
 </body>
 </html>

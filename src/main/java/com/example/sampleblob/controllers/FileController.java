@@ -4,6 +4,7 @@ import com.example.sampleblob.message.ResponseFile;
 import com.example.sampleblob.message.ResponseMessage;
 import com.example.sampleblob.models.FileDB;
 import com.example.sampleblob.services.FileStorageService;
+import com.example.sampleblob.utils.ImageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -64,6 +65,7 @@ public class FileController {
     public String showFile(Model model){
         List<FileDB> allFiles = storageService.getAllFilesAsList();
         model.addAttribute("allFiles", allFiles);
+        model.addAttribute("imgUtil", new ImageUtils());
         return "index";
     }
 
